@@ -78,6 +78,10 @@ func (redisPool RedisPool) GetReport(c *gin.Context) {
 		fmt.Println(err)
 		return
 	}
+	if totalTokenCount == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no token inserted in the last " + t + " hours"})
+		return
+	}
 
 	if numberOfTokensInt > totalTokenCount {
 		c.JSON(http.StatusBadRequest, gin.H{"error": strconv.Itoa(totalTokenCount) + " token found in Db.parameter n should be less or equal to " + strconv.Itoa(totalTokenCount)})
@@ -136,15 +140,25 @@ func getKeysForReport(n int) []string {
 }
 
 func (redisPool RedisPool) Insert(c *gin.Context) {
-	queryString, ok := c.GetQuery("query")
+	//queryString, ok := c.GetQuery("query")
+	queryStrings, ok := c.GetQueryArray("query")
 	if !ok {
 		c.JSON(http.StatusNotFound, gin.H{"error": "query not found!"})
 		return
 	}
-	// standard tokenizer : This tokenizer splits the text field into tokens, treating whitespace and punctuation as delimiters. Delimiter characters are discarded
-	tokens := standardTokenizer(queryString, ":@,-")
-	// keyword tokenizer : This tokenizer treats the entire text field as a single token.
-	tokens = append(tokens, strings.ToLower(queryString))
+	var tokens []string
+
+	for _, queryString := range queryStrings {
+		// standard tokenizer : This tokenizer splits the text field into tokens, treating whitespace and punctuation as delimiters. Delimiter characters are discarded
+		standardTokens := standardTokenizer(queryString, ":@,-")
+		tokens = append(tokens, standardTokens...)
+		// keyword tokenizer : This tokenizer treats the entire text field as a single token.
+		found := Find(tokens, strings.ToLower(queryString))
+		if !found {
+			//Value not found in slice
+			tokens = append(tokens, strings.ToLower(queryString))
+		}
+	}
 
 	for _, token := range tokens {
 		wg.Add(1)
@@ -154,6 +168,15 @@ func (redisPool RedisPool) Insert(c *gin.Context) {
 	wg.Wait()
 	c.JSON(http.StatusOK, gin.H{"msg": "query successfully cached !"})
 	return
+}
+
+func Find(slice []string, val string) bool {
+	for _, item := range slice {
+		if item == val {
+			return true
+		}
+	}
+	return false
 }
 
 func cacheTokensInRedis(token string, redisPool RedisPool) {
@@ -169,7 +192,8 @@ func cacheTokensInRedis(token string, redisPool RedisPool) {
 
 func standardTokenizer(s string, seps string) []string {
 	step1 := strings.ToLower(s)
-	var re = regexp.MustCompile(`(^\.*)| \.| *\. |@|,|-|:|\.*$`)
+	//	var re = regexp.MustCompile(`(^\.*)| \.| *\. |@|,|-|:|\.*$`)
+	var re = regexp.MustCompile(`(^\.*)| \.| *\. |@|'|\?|\(|\)|"|“|”|,|-|:|\.*$`)
 	step2 := re.ReplaceAllString(step1, " ")
 	return strings.Fields(step2)
 }
