@@ -1,41 +1,30 @@
-term-frequency 
+# term-frequency
+Sample term-frequency service using Golang and Redis
 
-Sample REST API term-frequency service using Golang and redis
+## API ENDPOINTS
 
-API ENDPOINTS
+### Insert Query
+- Path : `/api/cacheQuery/Insert`
+- Method: `POST`
+- Params: `query`
+- Response: `200`
 
-Insert
+### Get Report
+- Path : `/api/cacheQuery/GetReport`
+- Method: `GET`
+- Params: `n, t`
+- Response: `200`
 
-Path : /insert
+## Required Packages
+- Database
+    * [Redigo](https://github.com/gomodule/redigo)
+- Routing
+    * [gin](https://github.com/gin-gonic/gin)
 
-Method: POST
+## Run Project
 
-Params: query
-
-Response: 200
-
-GetReport
-
-Path : /GetReport
-
-Method: GET
-
-Params: n, t
-
-Response: 200
-
-Required Packages
-
-Database
-
-Redigo
-
-Routing
-
-gin
-
-Quick Run Project
-
-git clone https://github.com/s1s1ty/go-mysql-crud.git
+```
+git clone https://github.com/elmiramakvand/term-frequency.git
 
 docker-compose up
+```
