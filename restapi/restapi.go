@@ -16,6 +16,6 @@ func RunApiOnRouter(r *gin.Engine, redisPool *redis.Pool) {
 	cacheQueryGroup := r.Group("/api/cacheQuery")
 	{
 		cacheQueryGroup.GET("GetReport", Handler.GetReport)
-		cacheQueryGroup.POST("insert", Handler.Insert)
+		cacheQueryGroup.POST("Insert", Handler.Insert)
 	}
 }

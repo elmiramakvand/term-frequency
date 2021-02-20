@@ -26,7 +26,7 @@ func TestInsert(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	// Mock HTTP Request and it's return
-	req, err := http.NewRequest("POST", "/api/cacheQuery/insert?query=Please, email john.doe@foo.com by 03-09, re: m37-xq.", nil)
+	req, err := http.NewRequest("POST", "/api/cacheQuery/Insert?query=Please, email john.doe@foo.com by 03-09, re: m37-xq.", nil)
 
 	// make sure request was executed
 	assert.NoError(t, err)

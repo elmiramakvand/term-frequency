@@ -6,10 +6,6 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
-var (
-	pool *redis.Pool
-)
-
 func GetRedisPool(addr string, dbNo int) *redis.Pool {
 	pool := &redis.Pool{
 		MaxActive:   12000,
