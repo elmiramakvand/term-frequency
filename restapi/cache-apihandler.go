@@ -4,10 +4,10 @@ import (
 	"encoding/csv"
 	"fmt"
 	"net/http"
-	"regexp"
 	"strconv"
-	"strings"
-	"sync"
+	"term-frequency/repository"
+	cacherepo "term-frequency/repository/cacherepository"
+	"term-frequency/tokenizer"
 	"time"
 
 	"github.com/gomodule/redigo/redis"
@@ -15,19 +15,37 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var wg sync.WaitGroup
-
-type RedisPool struct {
-	redisPool *redis.Pool
-}
-
-func NewCacheQueryModel(redisPool *redis.Pool) *RedisPool {
-	return &RedisPool{
-		redisPool: redisPool,
+func NewCacheHandler(redisPool *redis.Pool) *Cache {
+	return &Cache{
+		repo: cacherepo.NewCacheRepository(redisPool),
 	}
 }
 
-func (redisPool RedisPool) GetReport(c *gin.Context) {
+type Cache struct {
+	repo repository.ICacheRepository
+}
+
+func (cache *Cache) Insert(c *gin.Context) {
+	queryStrings, ok := c.GetQueryArray("query")
+	if !ok {
+		c.JSON(http.StatusNotFound, gin.H{"error": "query not found!"})
+		return
+	}
+
+	var tokens []string
+
+	standardTokens := tokenizer.StandardTokenizer(queryStrings)
+	tokens = append(tokens, standardTokens...)
+
+	keywordTokens := tokenizer.KeywordTokenizer(queryStrings, tokens)
+	tokens = append(tokens, keywordTokens...)
+
+	cache.repo.InsertTokens(tokens)
+	c.JSON(http.StatusOK, gin.H{"msg": "query successfully cached !"})
+	return
+}
+
+func (cache *Cache) GetReport(c *gin.Context) {
 	t, ok := c.GetQuery("t")
 	if !ok {
 		// Parameter does not exist : default value of t is 1
@@ -56,24 +74,22 @@ func (redisPool RedisPool) GetReport(c *gin.Context) {
 		return
 	}
 
+	//generate keys for the last t hour
 	keys := getKeysForReport(timeInt)
-
-	conn := redisPool.redisPool.Get()
-	defer conn.Close()
 
 	now := time.Now()
 	keyTop := "TOP_" + now.Format("20060102") + "_" + t + "h"
 
-	var args []interface{}
-	args = append(args, keyTop)
-	args = append(args, t)
-	for _, k := range keys {
-		args = append(args, k)
+	err = cache.repo.StoreKeyUnionOfTokens(keyTop, t, keys)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
 	}
-	conn.Do("ZUNIONSTORE", args...)
 
 	// get count of all keys in given time
-	totalTokenCount, err := redis.Int(conn.Do("ZCOUNT", keyTop, "-inf", "+inf"))
+	totalTokenCount, err := cache.repo.GetCountOfTokensInSortedSet(keyTop)
+
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -89,13 +105,16 @@ func (redisPool RedisPool) GetReport(c *gin.Context) {
 	}
 
 	//get top n token in last t hours
-	values, err := redis.Strings(conn.Do("ZREVRANGEBYSCORE", keyTop, "+inf", "-inf", "LIMIT", "0", n, "withscores"))
+	values, err := cache.repo.GetTopValuesOfSortedSet(keyTop, n)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-
-	conn.Do("EXPIRE", keyTop, 1)
+	err = cache.repo.ExpireKey(keyTop, 1)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
 	// generate Csv File
 	headers := []string{"term", "count"}
@@ -104,7 +123,7 @@ func (redisPool RedisPool) GetReport(c *gin.Context) {
 }
 
 func generateCsvFile(headers []string, values []string, c *gin.Context) {
-	c.Header("Content-Disposition", "attachment; filename=export.csv")
+	c.Header("Content-Disposition", "attachment; filename=report.csv")
 	c.Header("Content-Type", "text/csv")
 	c.Header("Transfer-Encoding", "chunked")
 
@@ -137,63 +156,4 @@ func getKeysForReport(n int) []string {
 		keys = append(keys, keyDate.Format("20060102_15"))
 	}
 	return keys
-}
-
-func (redisPool RedisPool) Insert(c *gin.Context) {
-	//queryString, ok := c.GetQuery("query")
-	queryStrings, ok := c.GetQueryArray("query")
-	if !ok {
-		c.JSON(http.StatusNotFound, gin.H{"error": "query not found!"})
-		return
-	}
-	var tokens []string
-
-	for _, queryString := range queryStrings {
-		// standard tokenizer : This tokenizer splits the text field into tokens, treating whitespace and punctuation as delimiters. Delimiter characters are discarded
-		standardTokens := standardTokenizer(queryString, ":@,-")
-		tokens = append(tokens, standardTokens...)
-		// keyword tokenizer : This tokenizer treats the entire text field as a single token.
-		found := Find(tokens, strings.ToLower(queryString))
-		if !found {
-			//Value not found in slice
-			tokens = append(tokens, strings.ToLower(queryString))
-		}
-	}
-
-	for _, token := range tokens {
-		wg.Add(1)
-		go cacheTokensInRedis(token, redisPool)
-	}
-
-	wg.Wait()
-	c.JSON(http.StatusOK, gin.H{"msg": "query successfully cached !"})
-	return
-}
-
-func Find(slice []string, val string) bool {
-	for _, item := range slice {
-		if item == val {
-			return true
-		}
-	}
-	return false
-}
-
-func cacheTokensInRedis(token string, redisPool RedisPool) {
-	defer wg.Done()
-	c := redisPool.redisPool.Get()
-	now := time.Now()
-	keySet := now.Format("20060102_15")
-	c.Do("ZINCRBY", keySet, 1, token)
-	// expire key after 168 hours or 1 week
-	c.Do("EXPIRE", keySet, 604800)
-	c.Close()
-}
-
-func standardTokenizer(s string, seps string) []string {
-	step1 := strings.ToLower(s)
-	//	var re = regexp.MustCompile(`(^\.*)| \.| *\. |@|,|-|:|\.*$`)
-	var re = regexp.MustCompile(`(^\.*)| \.| *\. |@|'|\?|\(|\)|"|“|”|,|-|:|\.*$`)
-	step2 := re.ReplaceAllString(step1, " ")
-	return strings.Fields(step2)
 }

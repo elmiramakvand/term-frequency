@@ -12,7 +12,7 @@ func RunApi(redisPool *redis.Pool) *gin.Engine {
 }
 
 func RunApiOnRouter(r *gin.Engine, redisPool *redis.Pool) {
-	Handler := NewCacheQueryModel(redisPool)
+	Handler := NewCacheHandler(redisPool)
 	cacheQueryGroup := r.Group("/api/cacheQuery")
 	{
 		cacheQueryGroup.GET("GetReport", Handler.GetReport)
