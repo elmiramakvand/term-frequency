@@ -12,7 +12,7 @@ Sample term-frequency service using Golang and Redis
 ### Get Report
 - Path : `/GetReport`
 - Method: `GET`
-- Fields: `n, t`
+- Params: `n, t`
 - Response: `200`
 
 ## Required Packages
