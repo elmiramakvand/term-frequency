@@ -1,4 +1,4 @@
-# go-mysql-crud
+# term-frequency
 Sample term-frequency service using Golang and Redis
 
 ## API ENDPOINTS
