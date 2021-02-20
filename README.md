@@ -21,7 +21,7 @@ Sample term-frequency service using Golang and Redis
 - Routing
     * [gin](https://github.com/gin-gonic/gin)
 
-## Quick Run Project
+## Run Project
 
 ```
 git clone https://github.com/elmiramakvand/term-frequency.git
