@@ -15,6 +15,12 @@ Sample term-frequency service using Golang and Redis
 - Params: `n, t`
 - Response: `200`
 
+### URL examples
+* Insert Query:
+    * POST http://localhost:8080/api/cacheQuery/Insert?query=Please, email john.doe@foo.com by 03-09, re: m37-xq.
+* Get Report:
+    * GET http://localhost:8080/api/cacheQuery/GetReport?n=10&t=1
+
 ## Required Packages
 - Database
     * [Redigo](https://github.com/gomodule/redigo)
