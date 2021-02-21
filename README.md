@@ -4,13 +4,13 @@ Sample term-frequency service using Golang and Redis
 ## API ENDPOINTS
 
 ### Insert Query
-- Path : `/api/cacheQuery/Insert`
+- Path : `/api/cache-query/insert`
 - Method: `POST`
 - Params: `query`
 - Response: `200`
 
 ### Get Report
-- Path : `/api/cacheQuery/GetReport`
+- Path : `/api/cache-query/get-report`
 - Method: `GET`
 - Params: `n, t`
 - Response: `200`
