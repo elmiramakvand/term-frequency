@@ -23,7 +23,7 @@ func KeywordTokenizer(qs string, tokens []string) []string {
 	found := Find(tokens, strings.ToLower(qs))
 	if !found {
 		//Value not found in slice
-		result = append(result, strings.ToLower(qs))
+		result = append(result, strings.TrimSpace(strings.ToLower(qs)))
 	}
 	return result
 }
