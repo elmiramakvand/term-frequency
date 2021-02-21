@@ -2,7 +2,6 @@ package restapi
 
 import (
 	"encoding/csv"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -46,7 +45,6 @@ func (cache *Cache) Insert(c *gin.Context) {
 	keywordTokens := tokenizer.KeywordTokenizer(queryString, tokens)
 	tokens = append(tokens, keywordTokens...)
 
-	fmt.Println(tokens)
 	cache.repo.InsertTokens(tokens)
 	c.JSON(http.StatusOK, gin.H{"msg": "query successfully cached !"})
 	return
@@ -90,7 +88,7 @@ func (cache *Cache) GetReport(c *gin.Context) {
 	err = cache.repo.StoreKeyUnionOfTokens(keyTop, t, keys)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -98,7 +96,7 @@ func (cache *Cache) GetReport(c *gin.Context) {
 	totalTokenCount, err := cache.repo.GetCountOfTokensInSortedSet(keyTop)
 
 	if err != nil {
-		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	if totalTokenCount == 0 {
@@ -114,12 +112,12 @@ func (cache *Cache) GetReport(c *gin.Context) {
 	//get top n token in last t hours
 	values, err := cache.repo.GetTopValuesOfSortedSet(keyTop, n)
 	if err != nil {
-		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	err = cache.repo.ExpireKey(keyTop, 1)
 	if err != nil {
-		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
