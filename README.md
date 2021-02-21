@@ -17,9 +17,9 @@ Sample term-frequency service using Golang and Redis
 
 ### URL examples
 * Insert Query:
-    * POST   localhost:8080/api/cacheQuery/Insert?query=Please, email john.doe@foo.com by 03-09, re: m37-xq.
+    * POST   localhost:8080/api/cache-query/insert?query=Please, email john.doe@foo.com by 03-09, re: m37-xq.
 * Get Report:
-    * GET    localhost:8080/api/cacheQuery/GetReport?n=10&t=1
+    * GET    localhost:8080/api/cache-query/get-report?n=10&t=1
 
 ## Required Packages
 - Database
