@@ -9,8 +9,8 @@ import (
 // treating whitespace and punctuation as delimiters. Delimiter characters are discarded
 func StandardTokenizer(qs string) []string {
 	var tokens []string
-	step1 := strings.ToLower(qs)
-	var re = regexp.MustCompile(`(^\.*)| \.| *\. |@|'|\?|\(|\)|"|“|”|,|-|:|\.*$`)
+	step1 := strings.TrimSpace(strings.ToLower(qs))
+	var re = regexp.MustCompile(`(^\.*)| \.| *\. |@|'|\?|\(|\)|{|}|"|“|”|,|-|:|\.*$`)
 	step2 := re.ReplaceAllString(step1, " ")
 	tokens = append(tokens, strings.Fields(step2)...)
 	return tokens
@@ -29,7 +29,7 @@ func KeywordTokenizer(qs string, tokens []string) []string {
 }
 
 func CheckStringHasWord(qs string) bool {
-	var re = regexp.MustCompile(`(^\.*)| \.| *\. |@|'|\?|\(|\)|"|“|”|,|-|:|\.*$`)
+	var re = regexp.MustCompile(`(^\.*)| \.| *\. |@|'|\?|\(|\)|{|}|\.|"|“|”|,|-|:|\.*$`)
 	trimedQueryString := re.ReplaceAllString(strings.ToLower(qs), " ")
 	if len(strings.ReplaceAll(trimedQueryString, " ", "")) == 0 {
 		return false
