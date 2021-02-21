@@ -51,7 +51,6 @@ func (cache *Cache) Insert(c *gin.Context) {
 	return
 }
 
-
 func (cache *Cache) GetReport(c *gin.Context) {
 	t, ok := c.GetQuery("t")
 	if !ok {
