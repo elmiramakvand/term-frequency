@@ -9,10 +9,10 @@ import (
 // treating whitespace and punctuation as delimiters. Delimiter characters are discarded
 func StandardTokenizer(qs string) []string {
 	var tokens []string
-	        step1 := strings.ToLower(qs)
-		var re = regexp.MustCompile(`(^\.*)| \.| *\. |@|'|\?|\(|\)|"|“|”|,|-|:|\.*$`)
-		step2 := re.ReplaceAllString(step1, " ")
-		tokens = append(tokens, strings.Fields(step2)...)
+	step1 := strings.ToLower(qs)
+	var re = regexp.MustCompile(`(^\.*)| \.| *\. |@|'|\?|\(|\)|"|“|”|,|-|:|\.*$`)
+	step2 := re.ReplaceAllString(step1, " ")
+	tokens = append(tokens, strings.Fields(step2)...)
 	return tokens
 }
 
@@ -20,10 +20,10 @@ func StandardTokenizer(qs string) []string {
 func KeywordTokenizer(qs string, tokens []string) []string {
 	var result []string
 	found := Find(tokens, strings.ToLower(qs))
-		if !found {
-			//Value not found in slice
-			result = append(result, strings.ToLower(qs))
-		}
+	if !found {
+		//Value not found in slice
+		result = append(result, strings.ToLower(qs))
+	}
 	return result
 }
 

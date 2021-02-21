@@ -26,7 +26,7 @@ type Cache struct {
 }
 
 func (cache *Cache) Insert(c *gin.Context) {
-	queryString, ok := c.GetQueryArray("query")
+	queryString, ok := c.GetQuery("query")
 	if !ok {
 		c.JSON(http.StatusNotFound, gin.H{"error": "query not found!"})
 		return
