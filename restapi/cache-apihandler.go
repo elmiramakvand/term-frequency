@@ -53,7 +53,7 @@ func (cache *Cache) GetReport(c *gin.Context) {
 	}
 	timeInt, err := strconv.Atoi(t)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Parameter t should be number"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Parameter t should be a number"})
 		return
 	}
 
@@ -70,7 +70,7 @@ func (cache *Cache) GetReport(c *gin.Context) {
 
 	numberOfTokensInt, err := strconv.Atoi(n)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Parameter n should be number"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Parameter n should be a number"})
 		return
 	}
 
@@ -95,12 +95,12 @@ func (cache *Cache) GetReport(c *gin.Context) {
 		return
 	}
 	if totalTokenCount == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "no token inserted in the last " + t + " hours"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no token has been inserted in the last " + t + " hours"})
 		return
 	}
 
 	if numberOfTokensInt > totalTokenCount {
-		c.JSON(http.StatusBadRequest, gin.H{"error": strconv.Itoa(totalTokenCount) + " token found in Db.parameter n should be less or equal to " + strconv.Itoa(totalTokenCount)})
+		c.JSON(http.StatusBadRequest, gin.H{"error": strconv.Itoa(totalTokenCount) + " token found in Db. parameter n should be less or equal to " + strconv.Itoa(totalTokenCount)})
 		return
 	}
 
