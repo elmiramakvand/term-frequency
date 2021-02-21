@@ -26,7 +26,7 @@ func TestInsert(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	// Mock HTTP Request and it's return
-	req, err := http.NewRequest("POST", "/api/cacheQuery/Insert?query=Please, email john.doe@foo.com by 03-09, re: m37-xq.", nil)
+	req, err := http.NewRequest("POST", "/api/cache-query/insert?query=Please, email john.doe@foo.com by 03-09, re: m37-xq.", nil)
 
 	// make sure request was executed
 	assert.NoError(t, err)
@@ -48,7 +48,7 @@ func TestGetReport(t *testing.T) {
 	r := restapi.RunApi(redisPool)
 	w := httptest.NewRecorder()
 
-	req, err := http.NewRequest("GET", "/api/cacheQuery/GetReport?n=11&t=1", nil)
+	req, err := http.NewRequest("GET", "/api/cache-query/get-report?n=11&t=1", nil)
 
 	// make sure request was executed
 	assert.NoError(t, err)
