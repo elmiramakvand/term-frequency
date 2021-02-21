@@ -5,11 +5,9 @@ import (
 	"strings"
 )
 
-type queryString string
-
 // standard tokenizer : This tokenizer splits the text field into tokens,
 // treating whitespace and punctuation as delimiters. Delimiter characters are discarded
-func StandardTokenizer(qs queryString) []string {
+func StandardTokenizer(qs string) []string {
 	var tokens []string
 	        step1 := strings.ToLower(qs)
 		var re = regexp.MustCompile(`(^\.*)| \.| *\. |@|'|\?|\(|\)|"|“|”|,|-|:|\.*$`)
@@ -19,7 +17,7 @@ func StandardTokenizer(qs queryString) []string {
 }
 
 // keyword tokenizer : This tokenizer treats the entire text field as a single token.
-func KeywordTokenizer(qs queryString, tokens []string) []string {
+func KeywordTokenizer(qs string, tokens []string) []string {
 	var result []string
 	found := Find(tokens, strings.ToLower(qs))
 		if !found {
