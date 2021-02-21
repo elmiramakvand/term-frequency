@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"term-frequency/repository"
 	cacherepo "term-frequency/repository/cacherepository"
 	"term-frequency/tokenizer"
@@ -27,11 +28,16 @@ type Cache struct {
 
 func (cache *Cache) Insert(c *gin.Context) {
 	queryString, ok := c.GetQuery("query")
-	if !ok {
+	if !ok || queryString == "" || len(strings.ReplaceAll(queryString, " ", "")) == 0 {
 		c.JSON(http.StatusNotFound, gin.H{"error": "query not found!"})
 		return
 	}
 
+	ok = tokenizer.CheckStringHasWord(queryString)
+	if !ok {
+		c.JSON(http.StatusNotFound, gin.H{"error": "query has no word!"})
+		return
+	}
 	var tokens []string
 
 	standardTokens := tokenizer.StandardTokenizer(queryString)
@@ -40,6 +46,7 @@ func (cache *Cache) Insert(c *gin.Context) {
 	keywordTokens := tokenizer.KeywordTokenizer(queryString, tokens)
 	tokens = append(tokens, keywordTokens...)
 
+	fmt.Println(tokens)
 	cache.repo.InsertTokens(tokens)
 	c.JSON(http.StatusOK, gin.H{"msg": "query successfully cached !"})
 	return

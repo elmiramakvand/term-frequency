@@ -19,12 +19,22 @@ func StandardTokenizer(qs string) []string {
 // keyword tokenizer : This tokenizer treats the entire text field as a single token.
 func KeywordTokenizer(qs string, tokens []string) []string {
 	var result []string
+
 	found := Find(tokens, strings.ToLower(qs))
 	if !found {
 		//Value not found in slice
 		result = append(result, strings.ToLower(qs))
 	}
 	return result
+}
+
+func CheckStringHasWord(qs string) bool {
+	var re = regexp.MustCompile(`(^\.*)| \.| *\. |@|'|\?|\(|\)|"|“|”|,|-|:|\.*$`)
+	trimedQueryString := re.ReplaceAllString(strings.ToLower(qs), " ")
+	if len(strings.ReplaceAll(trimedQueryString, " ", "")) == 0 {
+		return false
+	}
+	return true
 }
 
 func Find(slice []string, val string) bool {
