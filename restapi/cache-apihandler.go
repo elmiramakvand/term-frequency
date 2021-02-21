@@ -37,6 +37,7 @@ func (cache *Cache) Insert(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "query has no word!"})
 		return
 	}
+
 	var tokens []string
 
 	standardTokens := tokenizer.StandardTokenizer(queryString)
@@ -49,6 +50,7 @@ func (cache *Cache) Insert(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"msg": "query successfully cached !"})
 	return
 }
+
 
 func (cache *Cache) GetReport(c *gin.Context) {
 	t, ok := c.GetQuery("t")
@@ -79,7 +81,7 @@ func (cache *Cache) GetReport(c *gin.Context) {
 		return
 	}
 
-	//generate keys for the last t hour
+	//generate keys of the last t hour
 	keys := getKeysForReport(timeInt)
 
 	now := time.Now()
@@ -92,7 +94,7 @@ func (cache *Cache) GetReport(c *gin.Context) {
 		return
 	}
 
-	// get count of all keys in given time
+	// get count of all keys in last t hour
 	totalTokenCount, err := cache.repo.GetCountOfTokensInSortedSet(keyTop)
 
 	if err != nil {
@@ -109,7 +111,7 @@ func (cache *Cache) GetReport(c *gin.Context) {
 		return
 	}
 
-	//get top n token in last t hours
+	//get top n token in last t hours (in descending order)
 	values, err := cache.repo.GetTopValuesOfSortedSet(keyTop, n)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
@@ -138,8 +140,10 @@ func generateCsvFile(headers []string, values []string, c *gin.Context) {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
+
 	for i := 0; i < len(values); i += 2 {
-		if values[i] != " " {
+		ok := tokenizer.CheckStringHasWord(values[i])
+		if ok {
 			err = writer.Write([]string{values[i], values[i+1]})
 			if err != nil {
 				c.AbortWithStatus(http.StatusInternalServerError)
@@ -152,6 +156,7 @@ func generateCsvFile(headers []string, values []string, c *gin.Context) {
 	return
 }
 
+// Generate Keys for sorted sets in redis db based on datetime
 func getKeysForReport(n int) []string {
 	var keys []string
 	now := time.Now()

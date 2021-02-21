@@ -21,9 +21,12 @@ type RedisPool struct {
 }
 
 func (redisPool RedisPool) InsertTokens(tokens []string) {
+	now := time.Now()
+	keySet := now.Format("20060102_15")
+
 	for _, token := range tokens {
 		wg.Add(1)
-		go cacheTokensInRedis(token, redisPool)
+		go cacheTokensInRedis(token, keySet, redisPool)
 	}
 
 	wg.Wait()
@@ -66,11 +69,9 @@ func (redisPool RedisPool) GetTopValuesOfSortedSet(key string, n string) ([]stri
 	return values, err
 }
 
-func cacheTokensInRedis(token string, redisPool RedisPool) {
+func cacheTokensInRedis(token string, keySet string, redisPool RedisPool) {
 	defer wg.Done()
 	c := redisPool.redisPool.Get()
-	now := time.Now()
-	keySet := now.Format("20060102_15")
 	c.Do("ZINCRBY", keySet, 1, token)
 	// expire key after 168 hours or 1 week
 	c.Do("EXPIRE", keySet, 604800)
