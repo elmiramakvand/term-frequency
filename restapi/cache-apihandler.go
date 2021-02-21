@@ -26,7 +26,7 @@ type Cache struct {
 }
 
 func (cache *Cache) Insert(c *gin.Context) {
-	queryStrings, ok := c.GetQueryArray("query")
+	queryString, ok := c.GetQueryArray("query")
 	if !ok {
 		c.JSON(http.StatusNotFound, gin.H{"error": "query not found!"})
 		return
@@ -34,10 +34,10 @@ func (cache *Cache) Insert(c *gin.Context) {
 
 	var tokens []string
 
-	standardTokens := tokenizer.StandardTokenizer(queryStrings)
+	standardTokens := tokenizer.StandardTokenizer(queryString)
 	tokens = append(tokens, standardTokens...)
 
-	keywordTokens := tokenizer.KeywordTokenizer(queryStrings, tokens)
+	keywordTokens := tokenizer.KeywordTokenizer(queryString, tokens)
 	tokens = append(tokens, keywordTokens...)
 
 	cache.repo.InsertTokens(tokens)
