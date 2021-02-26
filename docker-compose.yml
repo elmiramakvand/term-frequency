@@ -2,23 +2,29 @@
 version: '3'
 
 services:
-    web:
-        build:
-            context: .
-            dockerfile: dockerfile
+
+    webapi:
+        depends_on: 
+           - redis # This service depends on redis. Start that first.
+        links:
+            - redis
+        build: .
+        command: go run main.go
         ports:
             - "8080:8080"
-        restart: unless-stopped
-        expose:
-            - 8080
-        depends_on: 
-            - redis
+        networks:
+            - backend
 
-services:
     redis:
         image: redis:latest
         ports:
             - 6379:6379
         volumes:
            - ./data:/data
-        command:  redis-server --appendonly yes
+        command: ["redis-server", "--bind", "redis", "--port", "6379"]
+        
+        networks:
+           - backend
+
+networks:
+        backend:
